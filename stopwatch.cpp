@@ -1,36 +1,64 @@
 #include <chrono>
 #include <iostream>
 
+using LogFunctionType = std::function<void(const std::string& msg)>;
+using ClockType = std::chrono::high_resolution_clock;
+using TimePointType = std::chrono::time_point<ClockType>;
+using TimeMs = std::chrono::milliseconds;
 class Stopwatch
 {
 private:
-    std::chrono::time_point<std::chrono::high_resolution_clock> start_time;
-    std::chrono::time_point<std::chrono::high_resolution_clock> lap_time;
+    TimePointType timeStart;
+    TimePointType timeLap;
+    LogFunctionType logFunction;
 
-public:
-    Stopwatch() : start_time(std::chrono::high_resolution_clock::now()) {
-        lap_time = start_time;
+    void handleLogging(const std::stringstream msgStream) {
+        auto msgStr = msgStream.str();
+        if (logFunction == nullptr) {
+            std::cout << msgStr << std::endl;
+        } else {
+            logFunction(msgStr);
+        }
     }
 
-    void reset() {
-        start_time = std::chrono::high_resolution_clock::now();
-    }
-
-    double s_elapsed_total() {
-        auto end_time = std::chrono::high_resolution_clock::now();
-        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
+    double durationToSeconds(TimeMs duration) {
         return duration.count() / 1000.0;
     }
 
-    double s_elapsed_lap(std::string name) {
-        auto last_lap = lap_time;
-        auto curr_lap = std::chrono::high_resolution_clock::now();
+    double getTimeDiffFrom(TimePointType t0, TimePointType t1) {
+        return durationToSeconds(std::chrono::duration_cast<TimeMs>(t1 - t0));
+    }
 
-        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(curr_lap - last_lap);
-        auto dt = duration.count() / 1000.0;
+public:
+    Stopwatch() : timeStart(ClockType::now()) {
+        timeLap = timeStart;
+    }
 
-        lap_time = curr_lap;
-        std::cout << "Time taken: " << dt << "s \tname=" << name << std::endl;
-        return dt;
+    Stopwatch(LogFunctionType logFunction) : timeStart(ClockType::now()) {
+        setLogFunction(logFunction);
+        timeLap = timeStart;
+    }
+
+    void setLogFunction(LogFunctionType logFunction) {
+        this->logFunction = logFunction;
+    }
+
+    void reset() {
+        timeStart = ClockType::now();
+    }
+
+    double elapsedTotal(const std::string& desc) {
+        auto timeNow = ClockType::now();
+        auto timeTaken = getTimeDiffFrom(timeStart, timeNow);
+        handleLogging(std::stringstream() << "Time taken: t_total=" << timeTaken << "s \tdesc=" << desc);
+        return timeTaken;
+    }
+
+    double elapsedLap(const std::string& desc) {
+        auto timeNow = ClockType::now();
+        auto timeTaken = getTimeDiffFrom(timeLap, timeNow);
+        handleLogging(std::stringstream() << "Time taken: t_diff=" << timeTaken << "s \tdesc=" << desc);
+        timeLap = timeNow;
+        return timeTaken;
     }
 };
