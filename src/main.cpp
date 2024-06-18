@@ -7,7 +7,7 @@
 #include "stopwatch.cpp"
 
 int main() {
-    std::cout << "Starting ..." << std::endl;
+    std::cout << "Starting..." << std::endl;
 
     // Uniform random number generation b/n 50 and 100.
     std::random_device randomDevice;
@@ -21,4 +21,6 @@ int main() {
         int randomSleepInt = uniformIntDistribution(randomNumberGenerator);
         std::this_thread::sleep_for(std::chrono::milliseconds(randomSleepInt));
     }
+
+    std::cout << "Done." << std::endl;
 }

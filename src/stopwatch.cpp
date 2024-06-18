@@ -24,12 +24,11 @@ private:
     TimePointType timeLap;
     LogFunctionType logFunction;
 
-    void handleLogging(const std::stringstream msgStream) {
-        auto msgStr = msgStream.str();
+    void handleLogging(const char* msg) {
         if (logFunction == nullptr) {
-            std::cout << msgStr << std::endl;
+            std::cout << msg << std::endl;
         } else {
-            logFunction(msgStr);
+            logFunction(msg);
         }
     }
 
@@ -64,10 +63,12 @@ public:
         auto timeNow = ClockType::now();
         auto timeDiff = getTimeDiffFrom(timeLap, timeNow);
         auto timeTotal = getTimeDiffFrom(timeStart, timeNow);
-        handleLogging(std::stringstream()
-            << "t_total=" << timeTotal << "s\t" 
-            << "t_diff=" << timeDiff << "s\t" 
-            << "desc=" << desc);
+        char msgBuffer[100];
+        sprintf(
+            msgBuffer, 
+            "t_total=%6.3fs t_diff=%6.3fs desc=%s", 
+            timeTotal, timeDiff, desc.c_str());
+        handleLogging(msgBuffer);
         timeLap = timeNow;
         return TimeTaken(timeTotal, timeDiff);
     }

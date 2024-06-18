@@ -27,3 +27,5 @@ sw.elapsedLap("Some description");
 Notably, `elapsedLap("description")` logs with `name="description"` for log grepability. The next lap will be counted from instantiation or latest call to either `elapsedLap()` or `reset()`.
 
 You can also get the total time via `elapsedTotal()`. Totals don't count from latest invocation. Instead manually reset using `reset()`.
+
+You can run samples via `make clean build run`.
