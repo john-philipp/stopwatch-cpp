@@ -1,5 +1,7 @@
 #include <chrono>
 #include <iostream>
+#include <functional>
+#include <sstream>
 
 using LogFunctionType = std::function<void(const std::string& msg)>;
 using ClockType = std::chrono::high_resolution_clock;
@@ -7,6 +9,16 @@ using TimePointType = std::chrono::time_point<ClockType>;
 using TimeMs = std::chrono::milliseconds;
 class Stopwatch
 {
+    class TimeTaken {
+        public:
+            double total;
+            double diff;
+            TimeTaken(double total, double diff) {
+                this->total = total;
+                this->diff = diff;
+            }
+    };
+
 private:
     TimePointType timeStart;
     TimePointType timeLap;
@@ -30,8 +42,8 @@ private:
     }
 
 public:
-    Stopwatch() : timeStart(ClockType::now()) {
-        timeLap = timeStart;
+    Stopwatch() {
+        reset();
     }
 
     Stopwatch(LogFunctionType logFunction) : timeStart(ClockType::now()) {
@@ -45,20 +57,18 @@ public:
 
     void reset() {
         timeStart = ClockType::now();
+        timeLap = timeStart;
     }
 
-    double elapsedTotal(const std::string& desc) {
+    TimeTaken elapsedLap(const std::string& desc) {
         auto timeNow = ClockType::now();
-        auto timeTaken = getTimeDiffFrom(timeStart, timeNow);
-        handleLogging(std::stringstream() << "Time taken: t_total=" << timeTaken << "s \tdesc=" << desc);
-        return timeTaken;
-    }
-
-    double elapsedLap(const std::string& desc) {
-        auto timeNow = ClockType::now();
-        auto timeTaken = getTimeDiffFrom(timeLap, timeNow);
-        handleLogging(std::stringstream() << "Time taken: t_diff=" << timeTaken << "s \tdesc=" << desc);
+        auto timeDiff = getTimeDiffFrom(timeLap, timeNow);
+        auto timeTotal = getTimeDiffFrom(timeStart, timeNow);
+        handleLogging(std::stringstream()
+            << "t_total=" << timeTotal << "s\t" 
+            << "t_diff=" << timeDiff << "s\t" 
+            << "desc=" << desc);
         timeLap = timeNow;
-        return timeTaken;
+        return TimeTaken(timeTotal, timeDiff);
     }
 };
